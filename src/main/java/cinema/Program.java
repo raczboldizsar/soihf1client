@@ -17,12 +17,37 @@ import seatreservation.Seat;
 public class Program {
 
 	public static void main(String[] args) {
-		CinemaService cinemaService = new CinemaService();
-		ICinema cinema = cinemaService.getICinemaHttpSoap11Port();
-		BindingProvider bp = (BindingProvider) cinema;
-		// Set the URL of the service:
-		bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY,
-				"http://localhost:8080/WebService_VE9C1P/Cinema");
+		ICinema cinema = connect(args[0]);
+		Seat seat = new Seat();
+		seat.setRow(args[1]);
+		seat.setColumn(args[2]);
+		try {
+			switch (args[3]) {
+			case "Lock":
+				cinema.lock(seat, 1);
+				break;
+			case "Reserve":
+				String lockId = cinema.lock(seat, 1);
+				cinema.reserve(lockId);
+				break;
+			case "Buy":
+				String lockId2 = cinema.lock(seat, 1);
+				cinema.buy(lockId2);
+				break;
+
+			default:
+				break;
+			}
+		} catch (ICinemaLockCinemaException | ICinemaReserveCinemaException | ICinemaBuyCinemaException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void testServer() {
+		String url = "http://localhost:8080/WebService_VE9C1P/Cinema";
+
+		ICinema cinema = connect(url);
+
 		try {
 			cinema.init(10, 20);
 		} catch (ICinemaInitCinemaException e) {
@@ -207,6 +232,16 @@ public class Program {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	private static ICinema connect(String url) {
+		CinemaService cinemaService = new CinemaService();
+		ICinema cinema = cinemaService.getICinemaHttpSoap11Port();
+		BindingProvider bp = (BindingProvider) cinema;
+		// Set the URL of the service:
+
+		bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, url);
+		return cinema;
 	}
 
 }
